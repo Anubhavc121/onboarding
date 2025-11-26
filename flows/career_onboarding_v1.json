@@ -1,0 +1,337 @@
+{
+    "id": "career_onboarding_v1",
+    "title": "Career Onboarding Flow v1",
+    "start_node_id": "q_class",
+    "nodes": {
+      "q_class": {
+        "id": "q_class",
+        "type": "question",
+        "meta": {
+          "step": "about_you",
+          "label": "Class"
+        },
+        "ui": {
+          "question_text": "Which class are you in?",
+          "description": "This helps us show relevant options.",
+          "input_type": "single_choice",
+          "options": [
+            { "id": "10", "label": "Class 10" },
+            { "id": "11", "label": "Class 11" },
+            { "id": "12", "label": "Class 12" }
+          ]
+        },
+        "effects": [
+          {
+            "op": "set",
+            "path": "variables.class",
+            "from_": "answer"
+          }
+        ],
+        "edges": [
+          {
+            "condition": { "op": "always" },
+            "next_node_id": "q_goal"
+          }
+        ]
+      },
+  
+      "q_goal": {
+        "id": "q_goal",
+        "type": "question",
+        "meta": {
+          "step": "about_you",
+          "label": "Goal"
+        },
+        "ui": {
+          "question_text": "What are you mainly deciding right now?",
+          "description": "You can change this later.",
+          "input_type": "single_choice",
+          "options": [
+            { "id": "stream", "label": "Choose my stream" },
+            { "id": "ug_course", "label": "Choose my UG course" },
+            { "id": "college", "label": "Shortlist colleges" }
+          ]
+        },
+        "effects": [
+          {
+            "op": "set",
+            "path": "variables.goal",
+            "from_": "answer"
+          }
+        ],
+        "edges": [
+          {
+            "condition": {
+              "op": "eq",
+              "left": { "kind": "answer" },
+              "right": { "kind": "value", "value": "stream" }
+            },
+            "next_node_id": "q_stream_interest"
+          },
+          {
+            "condition": {
+              "op": "eq",
+              "left": { "kind": "answer" },
+              "right": { "kind": "value", "value": "college" }
+            },
+            "next_node_id": "q_location_pref"
+          },
+          {
+            "condition": { "op": "always" },
+            "next_node_id": "q_generic_interest"
+          }
+        ]
+      },
+  
+      "q_stream_interest": {
+        "id": "q_stream_interest",
+        "type": "question",
+        "meta": {
+          "step": "interests",
+          "label": "Stream Interests"
+        },
+        "ui": {
+          "question_text": "Which area sounds most interesting for your stream?",
+          "description": "Just pick the one that feels closest.",
+          "input_type": "single_choice",
+          "options": [
+            {
+              "id": "science_math",
+              "label": "Science with Maths",
+              "effects": [
+                {
+                  "op": "increment",
+                  "path": "scores.analytical",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "id": "commerce",
+              "label": "Commerce / Business",
+              "effects": [
+                {
+                  "op": "increment",
+                  "path": "scores.business_oriented",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "id": "arts",
+              "label": "Humanities / Arts",
+              "effects": [
+                {
+                  "op": "increment",
+                  "path": "scores.creative",
+                  "value": 1
+                }
+              ]
+            }
+          ]
+        },
+        "effects": [],
+        "edges": [
+          {
+            "condition": { "op": "always" },
+            "next_node_id": "q_work_style"
+          }
+        ]
+      },
+  
+      "q_location_pref": {
+        "id": "q_location_pref",
+        "type": "question",
+        "meta": {
+          "step": "study_plan",
+          "label": "Location Preference"
+        },
+        "ui": {
+          "question_text": "Where would you prefer to study?",
+          "description": "We’ll use this to filter college suggestions.",
+          "input_type": "single_choice",
+          "options": [
+            { "id": "same_state", "label": "In my home state" },
+            { "id": "nearby_states", "label": "Nearby states" },
+            { "id": "anywhere_india", "label": "Anywhere in India" }
+          ]
+        },
+        "effects": [
+          {
+            "op": "set",
+            "path": "variables.location_preference",
+            "from_": "answer"
+          }
+        ],
+        "edges": [
+          {
+            "condition": { "op": "always" },
+            "next_node_id": "q_work_style"
+          }
+        ]
+      },
+  
+      "q_generic_interest": {
+        "id": "q_generic_interest",
+        "type": "question",
+        "meta": {
+          "step": "interests",
+          "label": "Generic Interests"
+        },
+        "ui": {
+          "question_text": "What kind of things do you enjoy learning about?",
+          "description": "Choose the closest option.",
+          "input_type": "single_choice",
+          "options": [
+            {
+              "id": "numbers_logic",
+              "label": "Numbers, logic, problem solving",
+              "effects": [
+                {
+                  "op": "increment",
+                  "path": "scores.analytical",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "id": "people_society",
+              "label": "People, society, communication",
+              "effects": [
+                {
+                  "op": "increment",
+                  "path": "scores.people_oriented",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "id": "design_creative",
+              "label": "Design, creativity, making things",
+              "effects": [
+                {
+                  "op": "increment",
+                  "path": "scores.creative",
+                  "value": 1
+                }
+              ]
+            }
+          ]
+        },
+        "effects": [],
+        "edges": [
+          {
+            "condition": { "op": "always" },
+            "next_node_id": "q_work_style"
+          }
+        ]
+      },
+  
+      "q_work_style": {
+        "id": "q_work_style",
+        "type": "question",
+        "meta": {
+          "step": "personality",
+          "label": "Work Style"
+        },
+        "ui": {
+          "question_text": "Which style matches you the most in projects?",
+          "description": "There are no right or wrong answers.",
+          "input_type": "single_choice",
+          "options": [
+            {
+              "id": "problem_solver",
+              "label": "I like figuring out problems and checking answers",
+              "effects": [
+                {
+                  "op": "increment",
+                  "path": "scores.analytical",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "id": "organiser",
+              "label": "I like planning tasks and keeping track of things",
+              "effects": [
+                {
+                  "op": "increment",
+                  "path": "scores.organised",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "id": "people_helper",
+              "label": "I like explaining and helping others understand",
+              "effects": [
+                {
+                  "op": "increment",
+                  "path": "scores.people_oriented",
+                  "value": 1
+                }
+              ]
+            }
+          ]
+        },
+        "effects": [],
+        "edges": [
+          {
+            "condition": {
+              "op": "eq",
+              "left": { "kind": "context", "path": "variables.goal" },
+              "right": { "kind": "value", "value": "college" }
+            },
+            "next_node_id": "q_budget"
+          },
+          {
+            "condition": { "op": "always" },
+            "next_node_id": "r_starter_plan"
+          }
+        ]
+      },
+  
+      "q_budget": {
+        "id": "q_budget",
+        "type": "question",
+        "meta": {
+          "step": "study_plan",
+          "label": "Budget"
+        },
+        "ui": {
+          "question_text": "What is your comfortable annual fee range for college?",
+          "description": "You can give an approximate range.",
+          "input_type": "single_choice",
+          "options": [
+            { "id": "low", "label": "Up to ₹50,000 per year" },
+            { "id": "mid", "label": "₹50,000 – ₹2,00,000 per year" },
+            { "id": "high", "label": "Above ₹2,00,000 per year" }
+          ]
+        },
+        "effects": [
+          {
+            "op": "set",
+            "path": "variables.budget_band",
+            "from_": "answer"
+          }
+        ],
+        "edges": [
+          {
+            "condition": { "op": "always" },
+            "next_node_id": "r_starter_plan"
+          }
+        ]
+      },
+  
+      "r_starter_plan": {
+        "id": "r_starter_plan",
+        "type": "result",
+        "meta": {
+          "step": "result",
+          "label": "Starter Plan"
+        },
+        "renderer": "starter_plan_v1"
+      }
+    }
+  }
+  
