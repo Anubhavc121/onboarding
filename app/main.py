@@ -1,3 +1,5 @@
+# app/main.py
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -5,26 +7,37 @@ from app.router import router, FLOWS
 from app.flow_loader import load_flow
 
 
+# Create FastAPI app with docs enabled
 app = FastAPI(
     title="Onboarding Mini API",
     version="1.0.0",
-    docs_url="/docs",   # enable Swagger UI
-    redoc_url="/redoc", # enable ReDoc
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
-# CORS for frontend
+# CORS configuration
+# Add any frontend origins here (local + deployed)
+origins = [
+    "http://localhost:3000",                 # Next.js dev
+    "https://onboarding-plym.onrender.com",  # backend itself (optional)
+    # later you can add:
+    # "https://your-frontend.vercel.app",
+    # "https://career.avetilearning.com",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # you can tighten this later
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],   # GET, POST, etc.
+    allow_headers=["*"],   # Authorization, Content-Type, etc.
 )
 
 
 @app.on_event("startup")
 def load_flows() -> None:
     """
-    Load flows once when the app starts.
+    Load all onboarding flows once when the app starts.
     """
     FLOWS["career_onboarding_v1"] = load_flow("flows/career_onboarding_v1.json")
     print("Loaded flows:", list(FLOWS.keys()))
@@ -38,5 +51,5 @@ def root():
     return {"status": "ok", "message": "Onboarding API running"}
 
 
-# Mount the onboarding routes
+# Mount the onboarding router
 app.include_router(router)
