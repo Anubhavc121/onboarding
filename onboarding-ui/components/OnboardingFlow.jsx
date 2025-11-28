@@ -1,7 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8001";
+import { useEffect, useState } from "react";
 
 const STEP_ORDER = [
   { key: "about_you", label: "About you" },
@@ -23,26 +22,30 @@ export default function OnboardingFlow({ flowId = "career_onboarding_v1" }) {
   const currentStepKey = node?.meta?.step || (done ? "result" : "about_you");
   const currentStepIndex = Math.max(
     0,
-    STEP_ORDER.findIndex((s) => s.key === currentStepKey)
+    STEP_ORDER.findIndex((s) => s.key === currentStepKey),
   );
 
   const startFlow = async () => {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/onboarding/start`, {
+      const res = await fetch("/api/onboarding/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ flow_id: flowId }),
       });
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
+
+      const raw = await res.text();
+      if (!res.ok) throw new Error(raw);
+
+      const data = JSON.parse(raw);
       setSessionId(data.session_id);
       setNode(data.node);
       setDone(false);
       setResult(null);
       setContext(null);
     } catch (e) {
+      console.error("startFlow error", e);
       setError(String(e.message || e));
     } finally {
       setLoading(false);
@@ -51,6 +54,7 @@ export default function OnboardingFlow({ flowId = "career_onboarding_v1" }) {
 
   useEffect(() => {
     startFlow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowId]);
 
   const sendAnswer = async (answer) => {
@@ -58,7 +62,7 @@ export default function OnboardingFlow({ flowId = "career_onboarding_v1" }) {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/onboarding/answer`, {
+      const res = await fetch("/api/onboarding/answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -67,8 +71,11 @@ export default function OnboardingFlow({ flowId = "career_onboarding_v1" }) {
           answer,
         }),
       });
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
+
+      const raw = await res.text();
+      if (!res.ok) throw new Error(raw);
+
+      const data = JSON.parse(raw);
       setContext(data.context || null);
 
       if (data.done) {
@@ -79,6 +86,7 @@ export default function OnboardingFlow({ flowId = "career_onboarding_v1" }) {
         setNode(data.node);
       }
     } catch (e) {
+      console.error("sendAnswer error", e);
       setError(String(e.message || e));
     } finally {
       setLoading(false);
@@ -353,9 +361,7 @@ function QuestionCard({ node, onSubmit, loading }) {
 function ResultCard({ result, context, onRestart }) {
   const traits = result?.summary?.top_traits || [];
   const vars = result?.summary?.variables || {};
-  // Prefer summary.answers; fall back to context.answers if backend doesn’t send it yet
-  const answers =
-    result?.summary?.answers || context?.answers || {};
+  const answers = result?.summary?.answers || {};
 
   return (
     <div className="card-wrap">
@@ -378,13 +384,13 @@ function ResultCard({ result, context, onRestart }) {
         </div>
 
         <div className="section">
-          <h3>Your answers</h3>
-          <pre>{JSON.stringify(answers, null, 2)}</pre>
+          <h3>Your answers (derived)</h3>
+          <pre>{JSON.stringify(vars, null, 2)}</pre>
         </div>
 
         <div className="section">
-          <h3>Derived fields</h3>
-          <pre>{JSON.stringify(vars, null, 2)}</pre>
+          <h3>All raw answers</h3>
+          <pre>{JSON.stringify(answers, null, 2)}</pre>
         </div>
 
         <button className="next" onClick={onRestart}>
