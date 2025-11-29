@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+const API_BASE = "/api/onboarding";
+
 const STEP_ORDER = [
   { key: "about_you", label: "About you" },
   { key: "interests", label: "Interests" },
@@ -29,7 +31,7 @@ export default function OnboardingFlow({ flowId = "career_onboarding_v1" }) {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/onboarding/start", {
+      const res = await fetch(`${API_BASE}/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ flow_id: flowId }),
@@ -62,7 +64,7 @@ export default function OnboardingFlow({ flowId = "career_onboarding_v1" }) {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/onboarding/answer", {
+      const res = await fetch(`${API_BASE}/answer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

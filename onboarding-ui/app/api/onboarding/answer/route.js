@@ -1,37 +1,56 @@
 // app/api/onboarding/answer/route.js
 import { NextResponse } from "next/server";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8001";
+const BASE = process.env.ONBOARDING_API_BASE;
 
-export async function POST(req) {
-  try {
-    const body = await req.json();
-
-    const url = `${API_BASE}/onboarding/answer`;
-    console.log("[API/answer] proxy ->", url, "body:", body);
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+async function proxyToBackend(path, req) {
+  if (!BASE) {
+    console.error("ONBOARDING_API_BASE is not set in environment");
+    return NextResponse.json(
+      {
+        detail: "Frontend proxy error",
+        error: "ONBOARDING_API_BASE not configured",
       },
+      { status: 500 },
+    );
+  }
+
+  let body = {};
+  try {
+    body = await req.json();
+  } catch {
+    body = {};
+  }
+
+  try {
+    const res = await fetch(`${BASE}/onboarding/${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
     const raw = await res.text();
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      data = { raw };
+    }
 
     if (!res.ok) {
-      console.error("[API/answer] backend error", res.status, raw);
       return NextResponse.json(
-        { detail: "Backend error", status: res.status, raw },
+        {
+          detail: "Frontend proxy error",
+          status: res.status,
+          error: data,
+        },
         { status: res.status },
       );
     }
 
-    const json = JSON.parse(raw);
-    return NextResponse.json(json);
+    return NextResponse.json(data, { status: res.status });
   } catch (err) {
-    console.error("[API/answer] proxy error", err);
+    console.error("Proxy error /answer:", err);
     return NextResponse.json(
       {
         detail: "Frontend proxy error",
@@ -40,4 +59,15 @@ export async function POST(req) {
       { status: 500 },
     );
   }
+}
+
+export async function POST(req) {
+  return proxyToBackend("answer", req);
+}
+
+export async function GET() {
+  return NextResponse.json(
+    { detail: "Use POST /api/onboarding/answer from the app" },
+    { status: 405 },
+  );
 }
